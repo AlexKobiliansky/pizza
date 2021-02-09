@@ -1,10 +1,12 @@
 import React, {useEffect, useRef, useState, memo} from 'react';
+import PropTypes from 'prop-types';
+import Categories from './Categories';
 
-const SortPopup = memo(function SortPopup(props) {
+const SortPopup = memo(function SortPopup({items, onClickSortType, activeSortType}) {
     const [visiblePopup, setVisiblePopup] = useState(false);
-    const [activeItem, setActiveItem] = useState(0);
     const sortRef = useRef();
-    const activeLabel = props.items[activeItem].name;
+    const activeLabel = items.find(obj => obj.type === activeSortType).name;
+
 
     const toggleVisiblePopup = () => {
         setVisiblePopup(!visiblePopup)
@@ -18,8 +20,11 @@ const SortPopup = memo(function SortPopup(props) {
         document.body.addEventListener('click', handleOutsideClick)
     }, []);
 
-    const onSelectItem = (index) => {
-        setActiveItem(index);
+    const onSelectItem = (type) => {
+        if (onClickSortType) {
+            onClickSortType(type);
+        }
+
         setVisiblePopup(false);
     }
 
@@ -47,10 +52,10 @@ const SortPopup = memo(function SortPopup(props) {
 
             {visiblePopup && <div className="sort__popup">
                 <ul>
-                    {props.items?.map((obj, index) =>
+                    {items?.map((obj, index) =>
                         <li
-                            className={activeItem === index ? 'active' : 0}
-                            onClick={() => onSelectItem(index)}
+                            className={activeSortType === obj.type ? 'active' : 0}
+                            onClick={() => onSelectItem(obj)}
                             key={`${obj.type}_${index}`}
                         >{obj.name}</li>)}
                 </ul>
@@ -58,5 +63,15 @@ const SortPopup = memo(function SortPopup(props) {
         </div>
     );
 });
+
+SortPopup.propTypes = {
+    activeSortType: PropTypes.string.isRequired,
+    items: PropTypes.arrayOf(PropTypes.object).isRequired,
+    onClickSortType: PropTypes.func.isRequired
+}
+
+SortPopup.defaultProps = {
+    items: [],
+}
 
 export default SortPopup;
