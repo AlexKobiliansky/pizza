@@ -29,9 +29,6 @@ function Home() {
     const isLoaded = useSelector(({pizzas}) => pizzas.isLoaded);
     const {category, sortBy} = useSelector(({filters}) => filters);
 
-
-    console.log(cartItems);
-
     useEffect(() => {
         dispatch(fetchPizzas(sortBy, category));
     }, [category, sortBy]);
@@ -64,7 +61,7 @@ function Home() {
                     ? items.map((pizza) => (<PizzaBlock
                         onClickAddPizza={handleAddPizzaToCart}
                         key={pizza.id}
-                        addedCount={cartItems[pizza.id] && cartItems[pizza.id].length}
+                        addedCount={cartItems[pizza.id] && cartItems[pizza.id].items.length}
                         {...pizza}
                     />))
                     : Array(12).fill(0).map((_, index) => (<LoadingBlock key={index} />)) }

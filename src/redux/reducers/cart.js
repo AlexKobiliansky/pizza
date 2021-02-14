@@ -4,23 +4,100 @@ const initialState = {
     totalCount: 0
 }
 
+const getTotalPrice = arr => arr.reduce((sum, obj) => obj.price + sum, 0);
+
 const cart = (state = initialState, action) => {
     switch (action.type) {
         case 'ADD_PIZZA_CART': {
+
+            const currentPizzaItems = !state.items[action.payload.id]
+                ? [action.payload]
+                : [...state.items[action.payload.id].items, action.payload]
+
             const newItems = {
                 ...state.items,
-                [action.payload.id]:
-                    !state.items[action.payload.id]
-                        ? [action.payload]
-                        : [...state.items[action.payload.id], action.payload]
-            }
+                [action.payload.id]: {
+                    items: currentPizzaItems,
+                    totalPrice: getTotalPrice(currentPizzaItems)
+                }
+            };
+
+            const items = Object.values(newItems).map((obj) => obj.items);
+            const allPizzas = [].concat.apply([], items);
+            const totalPrice = getTotalPrice(allPizzas);
+
             return {
                 ...state,
                 items: newItems,
-                totalCount : state.totalCount + 1,
-                totalPrice : state.totalPrice + action.payload.price
+                totalCount: allPizzas.length,
+                totalPrice
             }
         }
+        case 'CLEAR_CART':
+            return {
+                totalCount: 0,
+                totalPrice: 0,
+                items: {},
+            }
+        case 'REMOVE_CART_ITEM':
+            const newItems = {
+                ...state.items
+            }
+            const currentTotalPrice = newItems[action.payload].totalPrice
+            const currentTotalCount = newItems[action.payload].items.length
+            delete newItems[action.payload]
+            return {
+                ...state,
+                items: newItems,
+                totalPrice: state.totalPrice - currentTotalPrice,
+                totalCount: state.totalCount - currentTotalCount,
+            }
+        case 'PLUS_CART_ITEM': {
+            const newItemsPlus = [
+                ...state.items[action.payload].items,
+                state.items[action.payload].items[0]
+            ];
+
+            const newItems = {
+                ...state.items,
+                [action.payload]: {
+                    items: newItemsPlus,
+                    totalPrice: getTotalPrice(newItemsPlus),
+                }}
+
+            const currentTotalPrice = newItems[action.payload].totalPrice
+            const currentTotalCount = newItems[action.payload].items.length
+
+            return {
+                ...state,
+                items: newItems,
+                totalCount: currentTotalCount,
+                totalPrice: currentTotalPrice
+            }
+        }
+
+        case 'MINUS_CART_ITEM': {
+            const oldItems = state.items[action.payload].items;
+            const newItemsMinus = oldItems.length > 1 ? state.items[action.payload].items.slice(1) : oldItems;
+
+            const newItems = {
+                ...state.items,
+                [action.payload]: {
+                    items: newItemsMinus,
+                    totalPrice: getTotalPrice(newItemsMinus),
+                }}
+
+            const currentTotalPrice = newItems[action.payload].totalPrice
+            const currentTotalCount = newItems[action.payload].items.length
+
+            return {
+                ...state,
+                items: newItems,
+                totalCount: currentTotalCount,
+                totalPrice: currentTotalPrice
+            }
+        }
+
         default :
             return state;
     }
